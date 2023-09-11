@@ -1,0 +1,374 @@
+---
+title: "Palmer Penguin"
+output:
+  flexdashboard::flex_dashboard:
+    social: menu
+    vertical_layout: fill
+    theme: yeti
+  html_document:
+    df_print: paged
+---
+
+``` {js}
+// Inverse the color of navigation bar.
+$('.navbar-inverse').removeClass('navbar-inverse').addClass('navbar-default');
+```
+
+
+```{r setup, include=FALSE}
+library(flexdashboard) 
+library(highcharter) 
+library(viridis) 
+library(tidyverse) 
+library(countrycode) 
+library(crosstalk) 
+library(plotly) 
+library(palmerpenguins)
+library(reactable)
+library(reactablefmtr)
+library(dataui)
+```
+
+<style>
+.colored {
+  background-color: #FAFAFA;
+}
+</style>
+
+
+The Dataset
+=======================================================================
+
+Column {.tabset .tabset-fade .colored }
+-----------------------------------------------------------------------
+
+### A Glimps of Palmer Penguin Dataset {.no-padding}
+
+```{r}
+reactable(penguins, style = list(height = "auto", fullWidth = FALSE)) %>% 
+  add_title(
+    title = reactablefmtr::html("Palmer Penguins <img src='https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/man/figures/lter_penguins.png' alt='Palmer Penguins' width='120' height='60'>"),
+    font_size = 16
+  ) %>% 
+  add_subtitle(
+    subtitle = 'Palmer Archipelago (Antarctica) penguin data',
+    font_size = 14,
+    font_color = '#666666',
+    margin = reactablefmtr::margin(t=0,r=0,b=0,l=0)
+  )
+  
+```
+
+
+### Summary
+```{r}
+
+library(gtExtras)
+gt_plt_summary(penguins) 
+```
+
+
+### Source
+Dataset
+https://allisonhorst.github.io/palmerpenguins/
+
+Illustration of Palmer Penguins
+https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/man/figures/lter_penguins.png
+
+
+Exploratory Data Analysis
+=======================================================================
+
+Column {.tabset .tabset-fade data-width=400 .colored }
+-----------------------------------------------------------------------
+### Body Mass {.no-padding}
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  na.omit(.) %>% 
+  summarize(across(where(is.numeric), list)) %>%
+  mutate(penguin_colors = case_when(
+    species == 'Adelie' ~ '#F5A24B',
+    species == 'Chinstrap' ~ '#AF52D5',
+    species == 'Gentoo' ~ '#4C9B9B',
+    TRUE ~ 'grey'
+  )) %>% 
+  select(-c(year,flipper_length_mm,bill_depth_mm, bill_length_mm)) %>% 
+reactable(
+  .,
+  theme = default(centered = TRUE),
+  compact = TRUE,
+  columns = list(
+    species = colDef(
+      name = 'Species',
+      align = 'center',
+      maxWidth = 110,
+        cell = pill_buttons(
+          data = .,
+          color_ref = 'penguin_colors',
+          text_size = 14,
+          brighten_text = FALSE,
+          bold_text = TRUE
+        )
+    ),
+    penguin_colors = colDef(show = FALSE),
+    body_mass_g = colDef(
+      name = 'Body Mass (g)',
+      align = 'center',
+      maxWidth = 900,
+      cell = react_sparkbar(
+        data = .,
+        fill_color_ref = 'penguin_colors',
+        statline = 'median',
+        height = 135,
+        statline_color = '#252525',
+        statline_label_size = '1.1em',
+        tooltip_type = 2,
+        margin = reactablefmtr::margin(r = 48)
+      )
+    )
+  )
+) 
+```
+
+### Flipper Length {.no-padding}
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  na.omit(.) %>% 
+  summarize(across(where(is.numeric), list)) %>%
+  mutate(penguin_colors = case_when(
+    species == 'Adelie' ~ '#F5A24B',
+    species == 'Chinstrap' ~ '#AF52D5',
+    species == 'Gentoo' ~ '#4C9B9B',
+    TRUE ~ 'grey'
+  )) %>% 
+  select(-c(year,body_mass_g,bill_depth_mm, bill_length_mm)) %>% 
+reactable(
+  .,
+  theme = default(centered = TRUE),
+  compact = TRUE,
+  columns = list(
+    species = colDef(
+      name = 'Species',
+      align = 'center',
+      maxWidth = 110,
+        cell = pill_buttons(
+          data = .,
+          color_ref = 'penguin_colors',
+          text_size = 14,
+          brighten_text = FALSE,
+          bold_text = TRUE
+        )
+    ),
+    penguin_colors = colDef(show = FALSE),
+    flipper_length_mm = colDef(
+      name = 'Flipper Length (mm)',
+      align = 'center',
+      maxWidth = 900,
+      cell = react_sparkbar(
+        data = .,
+        fill_color_ref = 'penguin_colors',
+        statline = 'median',
+        height = 135,
+        statline_color = '#252525',
+        statline_label_size = '1.1em',
+        tooltip_type = 2,
+        margin = reactablefmtr::margin(r = 40)
+      )
+    )
+  )
+) 
+```
+
+### Bill Length {.no-padding}
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  na.omit(.) %>% 
+  summarize(across(where(is.numeric), list)) %>%
+  mutate(penguin_colors = case_when(
+    species == 'Adelie' ~ '#F5A24B',
+    species == 'Chinstrap' ~ '#AF52D5',
+    species == 'Gentoo' ~ '#4C9B9B',
+    TRUE ~ 'grey'
+  )) %>% 
+  select(-c(year,body_mass_g,bill_depth_mm, flipper_length_mm)) %>% 
+reactable(
+  .,
+  theme = default(centered = TRUE),
+  compact = TRUE,
+  columns = list(
+    species = colDef(
+      name = 'Species',
+      align = 'center',
+      maxWidth = 110,
+        cell = pill_buttons(
+          data = .,
+          color_ref = 'penguin_colors',
+          text_size = 14,
+          brighten_text = FALSE,
+          bold_text = TRUE
+        )
+    ),
+    penguin_colors = colDef(show = FALSE),
+    bill_length_mm = colDef(
+      name = 'Bill Length (mm)',
+      align = 'center',
+      maxWidth = 900,
+      cell = react_sparkbar(
+        data = .,
+        fill_color_ref = 'penguin_colors',
+        statline = 'median',
+        height = 135,
+        statline_color = '#252525',
+        statline_label_size = '1.1em',
+        tooltip_type = 2,
+        margin = reactablefmtr::margin(r = 40)
+      )
+    )
+  )
+) 
+```
+
+### Bill Depth {.no-padding}
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  na.omit(.) %>% 
+  summarize(across(where(is.numeric), list)) %>%
+  mutate(penguin_colors = case_when(
+    species == 'Adelie' ~ '#F5A24B',
+    species == 'Chinstrap' ~ '#AF52D5',
+    species == 'Gentoo' ~ '#4C9B9B',
+    TRUE ~ 'grey'
+  )) %>% 
+  select(-c(year,body_mass_g,bill_length_mm, flipper_length_mm)) %>% 
+reactable(
+  .,
+  theme = default(centered = TRUE),
+  compact = TRUE,
+  columns = list(
+    species = colDef(
+      name = 'Species',
+      align = 'center',
+      maxWidth = 140,
+        cell = pill_buttons(
+          data = .,
+          color_ref = 'penguin_colors',
+          text_size = 14,
+          brighten_text = FALSE,
+          bold_text = TRUE
+        )
+    ),
+    penguin_colors = colDef(show = FALSE),
+    bill_depth_mm = colDef(
+      name = 'Bill Depth (mm)',
+      align = 'center',
+      maxWidth = 900,
+      cell = react_sparkbar(
+        data = .,
+        fill_color_ref = 'penguin_colors',
+        statline = 'median',
+        height = 135,
+        statline_color = '#252525',
+        statline_label_size = '1.1em',
+        tooltip_type = 2,
+        margin = reactablefmtr::margin(r = 40)
+      )
+    )
+  )
+) 
+```
+
+
+Column {.tabset .tabset-fade data-width=600 .colored }
+-----------------------------------------------------------------------
+### Bill Length vs. Flipper Length {.no-padding}
+```{r}
+penguin_data <- penguins %>%
+  select(species, bill_length_mm, flipper_length_mm)
+penguin_data %>%
+  group_by(species) %>%
+  hchart(type = "scatter", hcaes("bill_length_mm", "flipper_length_mm", group = species)) %>%
+  hc_xAxis(title = list(text = "Bill Length (mm)")) %>%
+  hc_yAxis(title = list(text = "Flipper Length (mm)")) %>%
+  hc_legend(enabled = TRUE) %>%
+  hc_plotOptions(
+    scatter = list(marker = list(radius = 6, symbol = "circle"))
+  )%>%
+  hc_colors(c("#F5A24B", "#AF52D5", "#4C9B9B" ))
+
+```
+### Bill Depth vs. Flipper Length {.no-padding}
+```{r}
+penguin_data <- penguins %>%
+  select(species, bill_depth_mm, flipper_length_mm)
+penguin_data %>%
+  group_by(species) %>%
+  hchart(type = "scatter", hcaes("bill_depth_mm", "flipper_length_mm", group = species)) %>%
+  hc_xAxis(title = list(text = "Bill Depth (mm)")) %>%
+  hc_yAxis(title = list(text = "Flipper Length (mm)")) %>%
+  hc_legend(enabled = TRUE) %>%
+  hc_plotOptions(
+    scatter = list(marker = list(radius = 6, symbol = "circle"))
+  )%>%
+  hc_colors(c("#F5A24B", "#AF52D5", "#4C9B9B" ))
+
+```
+
+### Bill Length vs. Bill Depth {.no-padding}
+```{r}
+penguin_data <- penguins %>%
+  select(species, bill_length_mm, bill_depth_mm)
+penguin_data %>%
+  group_by(species) %>%
+  hchart(type = "scatter", hcaes("bill_length_mm", "bill_depth_mm", group = species)) %>%
+  hc_xAxis(title = list(text = "Bill Length (mm)")) %>%
+  hc_yAxis(title = list(text = "Bill Depth (mm)")) %>%
+  hc_legend(enabled = TRUE) %>%
+  hc_plotOptions(
+    scatter = list(marker = list(radius = 6, symbol = "circle"))
+  )%>%
+  hc_colors(c("#F5A24B", "#AF52D5", "#4C9B9B" ))
+
+```
+
+
+
+About {data-icon="fa-info-circle"}
+=======================================================================
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### { .colored }
+
+**Author information:**
+
+To see my data visualization portfolio, please visit:
+
+https://edodanilyan.com 
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### { .colored }
+
+**References:**  
+
+Data were collected and made available by Dr. Kristen Gorman and the Palmer Station, Antarctica LTER, a member of the Long Term Ecological Research Network.
+
+Data originally published in:
+Gorman KB, Williams TD, Fraser WR (2014). Ecological sexual dimorphism and environmental variability within a community of Antarctic penguins (genus Pygoscelis). PLoS ONE 9(3):e90081. https://doi.org/10.1371/journal.pone.0090081
+
+Palmer Station Antarctica LTER and K. Gorman, 2020. Structural size measurements and isotopic signatures of foraging among adult male and female Adélie penguins (Pygoscelis adeliae) nesting along the Palmer Archipelago near Palmer Station, 2007-2009 ver 5. Environmental Data Initiative. https://doi.org/10.6073/pasta/98b16d7d563f265cb52372c8ca99e60f (Accessed 2020-06-08).
+
+Palmer Station Antarctica LTER and K. Gorman, 2020. Structural size measurements and isotopic signatures of foraging among adult male and female Gentoo penguin (Pygoscelis papua) nesting along the Palmer Archipelago near Palmer Station, 2007-2009 ver 5. Environmental Data Initiative. https://doi.org/10.6073/pasta/7fca67fb28d56ee2ffa3d9370ebda689 (Accessed 2020-06-08).
+
+
+Palmer Station Antarctica LTER and K. Gorman, 2020. Structural size measurements and isotopic signatures of foraging among adult male and female Chinstrap penguin (Pygoscelis antarcticus) nesting along the Palmer Archipelago near Palmer Station, 2007-2009 ver 6. Environmental Data Initiative. https://doi.org/10.6073/pasta/c14dfcfada8ea13a17536e73eb6fbe9e (Accessed 2020-06-08).
